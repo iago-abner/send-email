@@ -2,7 +2,6 @@ from email import charset, encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from fileinput import filename
 from imap_tools import MailBox, AND
 import email.mime.application
 import email.message
@@ -29,6 +28,7 @@ with MailBox('imap.gmail.com').login(login, pwd) as mailbox:
     for msg in mailbox.fetch(AND(from_=from_email)):
         if email_subject in msg.subject: 
             content = msg.html
+            print('ACHOU O EMAIL')
             #se tiver anexo
             if len(msg.attachments) > 0:
                 #armazenando o conteúdo do texto 
@@ -46,26 +46,27 @@ with MailBox('imap.gmail.com').login(login, pwd) as mailbox:
                         msg.add_header('Content-Type', 'text/html')
                         msg.attach(MIMEText(content, 'html'))
 
-                        path = '.\\planilhateste.xlsx'
+                        path = f'.\\{att.filename}'
                         attachment = open(path,'rb')
-                        att = email.mime.application.MIMEApplication(attachment.read(), subtype="xlsx", name=os.path.basename(path))
+                        att = email.mime.application.MIMEApplication(attachment.read(),name=os.path.basename(path))
                         attachment.close()
 
                         att.add_header('Content-Disposition', 'attachment')
-                        msg.attach(att)
+                        msg.attach(att)        
+                break
             else:
-                print('attachment not exist')
+                msg = MIMEMultipart()
+                msg.add_header('Content-Type', 'text/html')
+                msg.attach(MIMEText(content, 'html'))
+                print('Attachment not exists')
+                break
         else:
             print(msg.subject)
             print('Email not found')
 
 #Reenviando o email
-msg = MIMEMultipart()
-msg.add_header('Content-Type', 'text/html')
-msg.attach(MIMEText(content, 'html'))
-msg['Subject'] = subject_to
 msg['From'] = login
-#msg['To'] = email_to
+msg['Subject'] = subject_to
 password = pwd
 
 s = smtplib.SMTP('smtp.gmail.com:587')
