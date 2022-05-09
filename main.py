@@ -1,5 +1,3 @@
-from email import charset, encoders
-from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from imap_tools import MailBox, AND
@@ -21,13 +19,14 @@ from_email = 'inaldo@conthabilbr.com'
 att_name = 'planilhateste'
 
 #informações de envio
-subject_to = 'resposta ao envio'
+
 
 #Capturando dados do email recebido
 with MailBox('imap.gmail.com').login(login, pwd) as mailbox:
     for msg in mailbox.fetch(AND(from_=from_email)):
         if email_subject in msg.subject: 
             content = msg.html
+            subject_to = msg.subject
             print('ACHOU O EMAIL')
             #se tiver anexo
             if len(msg.attachments) > 0:
@@ -55,8 +54,10 @@ with MailBox('imap.gmail.com').login(login, pwd) as mailbox:
                         msg.attach(att)        
                 break
             else:
+                name = 'iago'
                 msg = MIMEMultipart()
                 msg.add_header('Content-Type', 'text/html')
+                msg.attach(MIMEText(f'Olá {name}, tudo bem?', 'html'))
                 msg.attach(MIMEText(content, 'html'))
                 print('Attachment not exists')
                 break
@@ -74,7 +75,7 @@ s.ehlo()
 s.starttls()
 
 #Credenciais para envio do email
-s.login(msg['From'], password)
+s.login(msg['From'],password)
 for i, contato in enumerate(contatos['contato']):
     s.sendmail(msg['From'], str(contato), msg.as_string().encode('utf-8'))
     print('enviado para:', contato)
