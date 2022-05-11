@@ -1,12 +1,13 @@
 from email.mime.multipart import MIMEMultipart
+from email.mime.message import MIMEMessage
 from email.mime.text import MIMEText
-import random
 from imap_tools import MailBox, AND
 from time import sleep
 import email.mime.application
 import email.message
 import pandas as pd
 import smtplib
+import random
 import json
 import os
 
@@ -28,10 +29,8 @@ with MailBox('imap.gmail.com').login(login, pwd) as mailbox:
         if email_subject in msg.subject:
             data.update({'content': msg.html})
             data.update({'subject': msg.subject}) 
-            print('Email encontrado')
             # se tiver anexo
             if len(msg.attachments) > 0:
-                # armazenando o conteúdo do texto
                 # percorra os anexos
                 for att in msg.attachments:
                     # verificando nome
@@ -50,12 +49,12 @@ with MailBox('imap.gmail.com').login(login, pwd) as mailbox:
                         data.update({'att': att})
                 break
             else:
-                print('Attachment not exists')
+                print('Não há anexos')
                 break
         else:
-            print(msg.subject)
-            print('Email not found')
+            print('Email não encontrado')
 
+# Conectar com o servidor
 s = smtplib.SMTP('smtp.gmail.com:587')
 s.ehlo()
 s.starttls()
@@ -77,7 +76,7 @@ for i, item in enumerate(data_email['itens']):
     msg['From'] = login
     msg.add_header('Content-Type', 'text/html')
     body.attach(MIMEText(f'Oi, {name}. Tudo tranquilo?', 'html'))
-    body.attach(MIMEText(data['content'], 'html'))
+    body.attach(MIMEText(data['content'],'html'))
     msg.attach((body))
     if data['att']:
         data['att'].add_header('Content-Disposition', 'attachment')
@@ -86,5 +85,5 @@ for i, item in enumerate(data_email['itens']):
     print('enviado para:', item['email'])
     time = random.randint(5,60)
     sleep(time)
-print('Email enviado')
+print('Envios finalizados')
 s.quit()
